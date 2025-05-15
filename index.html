@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Readub</title>
+</head>
+<body>
+  <header>
+    <h1>📚 Readub</h1>
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search anything..." />
+      <select id="contentType">
+        <option value="book">Book</option>
+        <option value="comic">Comic</option>
+        <option value="manga">Manga</option>
+        <option value="video">Video</option>
+      </select>
+      <button onclick="generateContent()">Generate</button>
+    </div>
+  </header>
+
+  <main id="contentArea">
+    <p>Start by searching for a topic above.</p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
