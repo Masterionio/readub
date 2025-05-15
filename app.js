@@ -1,4 +1,4 @@
-function generateContent() {
+async function generateContent() {
   const query = document.getElementById("searchInput").value.trim();
   const type = document.getElementById("contentType").value;
   const output = document.getElementById("contentArea");
@@ -8,38 +8,53 @@ function generateContent() {
     return;
   }
 
-  // Simulate AI generation
-  let generatedHTML = `<h2>Results for "${query}" [${type}]</h2>`;
+  output.innerHTML = "<p>Generating content...</p>";
 
-  for (let i = 1; i <= 3; i++) {
-    if (type === "book") {
-      generatedHTML += `
-        <article>
-          <h3>Chapter ${i}: ${query} - A New Tale</h3>
-          <p>${generateText(query)}</p>
-        </article>`;
-    } else if (type === "comic" || type === "manga") {
-      generatedHTML += `
-        <article>
-          <h3>Page ${i}</h3>
-          <img src="https://placehold.co/400x600?text=${query}+${type}+${i}" alt="Generated ${type} Page ${i}">
-        </article>`;
-    } else if (type === "video") {
-      generatedHTML += `
-        <article>
-          <h3>Clip ${i}: ${query} Explained</h3>
-          <video controls width="100%">
-            <source src="sample-video.mp4" type="video/mp4">
-            <track kind="captions" src="sample.vtt" srclang="en" label="English" default>
-          </video>
-        </article>`;
-    }
+  const response = await fetch("http://localhost:5000/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: query, type })
+  });
+
+  const data = await response.json();
+  let html = `<h2>${data.title}</h2>`;
+
+  if (type === "book") {
+    data.pages.forEach(p => {
+      html += `<article><h3>Chapter ${p.chapter}</h3><p>${p.text}</p></article>`;
+    });
+  } else if (type === "comic" || type === "manga") {
+    data.images.forEach((img, i) => {
+      html += `<article><h3>Page ${i + 1}</h3><img src="${img}" alt="${type} page" /></article>`;
+    });
+  } else if (type === "video") {
+    html += `
+      <article>
+        <video id="videoPlayer" controls>
+          <source src="${data.video_url}" type="video/mp4">
+          <track kind="captions" src="${data.captions.en}" srclang="en" label="English" default>
+        </video>
+        <label>Playback Speed: <span id="speedVal">1.00×</span></label>
+        <input type="range" min="0.25" max="3.00" step="0.05" value="1" 
+               oninput="updateSpeed(this, 'videoPlayer', 'speedVal')" />
+        <button onclick="toggleCaptions('videoPlayer')">Toggle Captions</button>
+      </article>`;
   }
 
-  output.innerHTML = generatedHTML;
+  output.innerHTML = html;
 }
 
-function generateText(seed) {
-  return `Once upon a time, in a world of ${seed}, something amazing happened. 
-  The journey began, filled with wonder and unexpected twists.`;
+function updateSpeed(slider, videoId, labelId) {
+  const video = document.getElementById(videoId);
+  const label = document.getElementById(labelId);
+  const speed = parseFloat(slider.value).toFixed(2);
+  video.playbackRate = speed;
+  label.textContent = `${speed}×`;
+}
+
+function toggleCaptions(videoId) {
+  const tracks = document.getElementById(videoId).textTracks;
+  for (let track of tracks) {
+    track.mode = track.mode === "showing" ? "disabled" : "showing";
+  }
 }
